@@ -1,0 +1,15 @@
+ WITH CTEDOC AS(
+
+SELECT
+
+ROW_NUMBER()OVER (PARTITION BY d.CaseDocumentID ORDER BY PageSequence) [rowN] , d.DocumentID
+
+FROM tblCaseDocument cd WITH(NOLOCK)
+
+JOIN tblDocument d WITH(NOLOCK) ON d.CaseDocumentID = cd.CaseDocumentID
+
+WHERE NOT EXISTS (SELECT * FROM tblDocument (NOLOCK) WHERE PageSequence = 1 and SourceTableID = cd.CaseDocumentID) AND cd.DocumentCount > 0
+
+)
+
+UPDATE d SET PageSequence = cte.rowN FROM CTEDOC CTE JOIN tblDocument d (NOLOCK) ON d.DocumentID = cte.DocumentID
